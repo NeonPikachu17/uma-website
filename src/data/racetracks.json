@@ -1,0 +1,62 @@
+[
+  {
+    "id": "tokyo",
+    "name": "Tokyo Racecourse",
+    "location": "Fuchu, Tokyo",
+    "description": "Japan's premier racecourse, hosting the Japan Cup and Japanese Derby. Features a wide left-handed course with a long 525.9m homestretch.",
+    "image": "/images/tokyo_racecourse.jpg",
+    "winners": [
+      { "horse": "Special Week", "race": "Japan Cup", "year": 1999 },
+      { "horse": "Deep Impact", "race": "Japan Cup", "year": 2006 },
+      { "horse": "Kitasan Black", "race": "Japan Cup", "year": 2016 },
+      { "horse": "Vodka", "race": "Tokyo Yushun (Japanese Derby)", "year": 2007 },
+      { "horse": "T.M. Opera O", "race": "Tenno Sho (Autumn)", "year": 2000 },
+      { "horse": "Air Groove", "race": "Tenno Sho (Autumn)", "year": 1997 }
+    ]
+  },
+  {
+    "id": "nakayama",
+    "name": "Nakayama Racecourse",
+    "location": "Funabashi, Chiba",
+    "description": "Home of the legendary Arima Kinen (Grand Prix). Famous for its tight right-handed turns and the grueling uphill final stretch.",
+    "image": "/images/nakayama_racecourse.jpg",
+    "winners": [
+      { "horse": "Gold Ship", "race": "Arima Kinen", "year": 2012 },
+      { "horse": "Gold Ship", "race": "Arima Kinen", "year": 2013 },
+      { "horse": "Symboli Rudolf", "race": "Arima Kinen", "year": 1984 },
+      { "horse": "Oguri Cap", "race": "Arima Kinen", "year": 1990 },
+      { "horse": "Tokai Teio", "race": "Arima Kinen", "year": 1993 },
+      { "horse": "Narita Brian", "race": "Satsuki Sho (Japanese 2000 Guineas)", "year": 1994 }
+    ]
+  },
+  {
+    "id": "kyoto",
+    "name": "Kyoto Racecourse",
+    "location": "Yodo, Kyoto",
+    "description": "Features the famous 'Yodo no Saka' slope on the backstretch. Hosts the Tenno Sho (Spring) and Kikuka Sho (Japanese St. Leger).",
+    "image": "/images/kyoto_racecourse.jpg",
+    "winners": [
+      { "horse": "Mejiro McQueen", "race": "Tenno Sho (Spring)", "year": 1991 },
+      { "horse": "Mejiro McQueen", "race": "Tenno Sho (Spring)", "year": 1992 },
+      { "horse": "Rice Shower", "race": "Tenno Sho (Spring)", "year": 1993 },
+      { "horse": "Deep Impact", "race": "Kikuka Sho (Japanese St. Leger)", "year": 2005 },
+      { "horse": "Biwa Hayahide", "race": "Kikuka Sho (Japanese St. Leger)", "year": 1993 },
+      { "horse": "Narita Brian", "race": "Kikuka Sho (Japanese St. Leger)", "year": 1994 }
+    ]
+  },
+  {
+    "id": "hanshin",
+    "name": "Hanshin Racecourse",
+    "location": "Takarazuka, Hyogo",
+    "description": "Home of the Takarazuka Kinen, set against the backdrop of the Rokko Mountains. A right-handed course known for its unique figure-eight layout.",
+    "image": "/images/hanshin_racecourse.jpg",
+    "winners": [
+      { "horse": "Gold Ship", "race": "Takarazuka Kinen", "year": 2013 },
+      { "horse": "Gold Ship", "race": "Takarazuka Kinen", "year": 2014 },
+      { "horse": "Silence Suzuka", "race": "Takarazuka Kinen", "year": 1998 },
+      { "horse": "T.M. Opera O", "race": "Takarazuka Kinen", "year": 2001 },
+      { "horse": "Tamamo Cross", "race": "Takarazuka Kinen", "year": 1988 },
+      { "horse": "Mejiro McQueen", "race": "Takarazuka Kinen", "year": 1993 }
+    ]
+  }
+]

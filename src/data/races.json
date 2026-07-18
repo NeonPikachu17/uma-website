@@ -1,0 +1,50 @@
+[
+  {
+    "id": "japan_cup",
+    "title": "Japan Cup",
+    "start": "2026-11-29T15:40:00.000Z",
+    "end": "2026-11-29T16:00:00.000Z",
+    "location": "Tokyo Racecourse",
+    "grade": "G1"
+  },
+  {
+    "id": "arima_kinen",
+    "title": "Arima Kinen",
+    "start": "2026-12-27T15:25:00.000Z",
+    "end": "2026-12-27T15:45:00.000Z",
+    "location": "Nakayama Racecourse",
+    "grade": "G1"
+  },
+  {
+    "id": "tokyo_yushun",
+    "title": "Tokyo Yushun (Japanese Derby)",
+    "start": "2026-05-31T15:40:00.000Z",
+    "end": "2026-05-31T16:00:00.000Z",
+    "location": "Tokyo Racecourse",
+    "grade": "G1"
+  },
+  {
+    "id": "takarazuka_kinen",
+    "title": "Takarazuka Kinen",
+    "start": "2026-06-28T15:40:00.000Z",
+    "end": "2026-06-28T16:00:00.000Z",
+    "location": "Hanshin Racecourse",
+    "grade": "G1"
+  },
+  {
+    "id": "tenno_sho_spring",
+    "title": "Tenno Sho (Spring)",
+    "start": "2026-05-03T15:40:00.000Z",
+    "end": "2026-05-03T16:00:00.000Z",
+    "location": "Kyoto Racecourse",
+    "grade": "G1"
+  },
+  {
+    "id": "tenno_sho_autumn",
+    "title": "Tenno Sho (Autumn)",
+    "start": "2026-11-01T15:40:00.000Z",
+    "end": "2026-11-01T16:00:00.000Z",
+    "location": "Tokyo Racecourse",
+    "grade": "G1"
+  }
+]
