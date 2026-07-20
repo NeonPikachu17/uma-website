@@ -17,7 +17,7 @@ pipeline {
         APP_SRC     = './'                           // repo root; 'dist/' if you build
         
         // The ID of your "Username with password" credential in Jenkins
-        CREDENTIAL_ID = 'webservers-ssh-password'
+        CREDENTIAL_ID = 'webserver-ssh-password'
         // --------------------
     }
 
