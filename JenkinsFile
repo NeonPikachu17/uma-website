@@ -1,44 +1,26 @@
-// GitHub push -> webhook -> Jenkins -> SSH/rsync -> Apache servers (/var/www/html).
-// Uses the SSH Agent plugin + the 'webservers-ssh-key' credential. Put at repo ROOT.
-
 pipeline {
     agent any
 
-    options {
-        timestamps()
-        disableConcurrentBuilds()
-    }
-
     environment {
-        // ---- EDIT THESE ----
-        SERVERS = 'msbernabe@20.83.153.128 ubuntu@172.208.67.151'  // your two web servers
-        DOCROOT = '/var/www/html'                             // Apache default doc root
-        APP_SRC = './'                                        // repo root; 'dist/' if you build
-        // --------------------
+        SERVERS = 'msbernabe@20.83.153.128 msbernabe@172.208.67.151'
+        DOCROOT = '/var/www/html'
+        APP_SRC = './'
     }
 
     stages {
-
         stage('Checkout') {
             steps { checkout scm }
         }
 
-        stage('Build & Test') {
-            steps {
-                // Put real build/test commands here if any, e.g. sh 'npm ci && npm run build'
-                sh 'echo "No build step — deploying repo as-is."'
-            }
-        }
-
         stage('Deploy') {
             steps {
+                // Jenkins automatically injects the SSH key from UI credentials here!
                 sshagent(credentials: ['webservers-ssh-key']) {
                     sh '''
                         set -eu
                         SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
                         for HOST in ${SERVERS}; do
                             echo "=== Deploying to ${HOST}:${DOCROOT} ==="
-                            # --rsync-path="sudo rsync" lets rsync write to /var/www/html on the server.
                             rsync -az --delete -e "ssh ${SSH_OPTS}" --rsync-path="sudo rsync" \
                                 --exclude '.git' --exclude 'Jenkinsfile' \
                                 "${APP_SRC}" "${HOST}:${DOCROOT}/"
