@@ -1,0 +1,3 @@
+SERVERS = 'msbernabe@172.208.67.151 msbernabe@20.83.153.128'
+DOCROOT = '/var/www/html'
+APP_SRC = './'
