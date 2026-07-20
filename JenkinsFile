@@ -10,32 +10,22 @@ pipeline {
     }
 
     environment {
-        // ---- EDIT THESE ----
-        // IPs/Hostnames of your target web servers (space-separated, without the username)
-        WEB_SERVERS = '20.83.153.128 172.208.67.151' 
-        DOCROOT     = '/var/www/html'                // Apache default doc root
-        APP_SRC     = './'                           // repo root; 'dist/' if you build
-        
-        // The ID of your "Username with password" credential in Jenkins
-        CREDENTIAL_ID = 'webserver-ssh-password'
-        // --------------------
+        // Target server IPs
+        WEB_SERVERS   = '20.83.153.128 172.208.67.151' 
+        DOCROOT       = '/var/www/html'
+        APP_SRC       = './'
+        CREDENTIAL_ID = 'webserver-ssh-password' // Match your Jenkins Credential ID
     }
 
     stages {
-
         stage('Checkout') {
-            steps { checkout scm }
-        }
-
-        stage('Build & Test') {
             steps {
-                sh 'echo "No build step — deploying repo as-is."'
+                checkout scm
             }
         }
 
         stage('Deploy') {
             steps {
-                // Retrieves username & password securely from Jenkins Credentials Manager
                 withCredentials([usernamePassword(credentialsId: env.CREDENTIAL_ID, usernameVariable: 'SSH_USER', passwordVariable: 'SSH_PASS')]) {
                     sh '''
                         set -eu
@@ -45,17 +35,17 @@ pipeline {
                             TARGET="${SSH_USER}@${SERVER}"
                             echo "=== Deploying to ${TARGET}:${DOCROOT} ==="
                             
-                            # Use sshpass to pass the password to rsync
+                            # Deploy files via rsync using sshpass
                             rsync -az --delete \
                                 -e "sshpass -p '${SSH_PASS}' ssh ${SSH_OPTS}" \
                                 --rsync-path="sudo rsync" \
                                 --exclude '.git' --exclude 'Jenkinsfile' \
                                 "${APP_SRC}" "${TARGET}:${DOCROOT}/"
                             
-                            # Use sshpass to execute the Apache reload command
+                            # Reload Apache to serve fresh files
                             sshpass -p "${SSH_PASS}" ssh ${SSH_OPTS} "${TARGET}" "sudo systemctl reload apache2"
                             
-                            echo "=== ${TARGET} updated ==="
+                            echo "=== ${TARGET} updated successfully ==="
                         done
                     '''
                 }
