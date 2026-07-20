@@ -1,3 +1,65 @@
-SERVERS = 'msbernabe@172.208.67.151 msbernabe@20.83.153.128'
-DOCROOT = '/var/www/html'
-APP_SRC = './'
+// GitHub push -> webhook -> Jenkins -> SSH/rsync (password auth) -> Apache servers (/var/www/html).
+// Uses 'usernamePassword' credential + sshpass. Put at repo ROOT.
+
+pipeline {
+    agent any
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+    }
+
+    environment {
+        // ---- EDIT THESE ----
+        // IPs/Hostnames of your target web servers (space-separated, without the username)
+        WEB_SERVERS = '20.83.153.128 172.208.67.151' 
+        DOCROOT     = '/var/www/html'                // Apache default doc root
+        APP_SRC     = './'                           // repo root; 'dist/' if you build
+        
+        // The ID of your "Username with password" credential in Jenkins
+        CREDENTIAL_ID = 'webservers-ssh-password'
+        // --------------------
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps { checkout scm }
+        }
+
+        stage('Build & Test') {
+            steps {
+                sh 'echo "No build step — deploying repo as-is."'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                // Retrieves username & password securely from Jenkins Credentials Manager
+                withCredentials([usernamePassword(credentialsId: env.CREDENTIAL_ID, usernameVariable: 'SSH_USER', passwordVariable: 'SSH_PASS')]) {
+                    sh '''
+                        set -eu
+                        SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+                        
+                        for SERVER in ${WEB_SERVERS}; do
+                            TARGET="${SSH_USER}@${SERVER}"
+                            echo "=== Deploying to ${TARGET}:${DOCROOT} ==="
+                            
+                            # Use sshpass to pass the password to rsync
+                            rsync -az --delete \
+                                -e "sshpass -p '${SSH_PASS}' ssh ${SSH_OPTS}" \
+                                --rsync-path="sudo rsync" \
+                                --exclude '.git' --exclude 'Jenkinsfile' \
+                                "${APP_SRC}" "${TARGET}:${DOCROOT}/"
+                            
+                            # Use sshpass to execute the Apache reload command
+                            sshpass -p "${SSH_PASS}" ssh ${SSH_OPTS} "${TARGET}" "sudo systemctl reload apache2"
+                            
+                            echo "=== ${TARGET} updated ==="
+                        done
+                    '''
+                }
+            }
+        }
+    }
+}
