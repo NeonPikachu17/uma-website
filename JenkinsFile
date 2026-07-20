@@ -1,5 +1,5 @@
-// GitHub push -> webhook -> Jenkins -> SSH/rsync (password auth) -> Apache servers (/var/www/html).
-// Uses 'usernamePassword' credential + sshpass. Put at repo ROOT.
+// GitHub push -> webhook -> Jenkins -> SSH/rsync -> Apache servers (/var/www/html).
+// Uses the SSH Agent plugin + the 'webservers-ssh-key' credential. Put at repo ROOT.
 
 pipeline {
     agent any
@@ -10,42 +10,40 @@ pipeline {
     }
 
     environment {
-        // Target server IPs
-        WEB_SERVERS   = '20.83.153.128 172.208.67.151' 
-        DOCROOT       = '/var/www/html'
-        APP_SRC       = './'
-        CREDENTIAL_ID = 'webserver-ssh-password' // Match your Jenkins Credential ID
+        // ---- EDIT THESE ----
+        SERVERS = 'msbernabe@20.83.153.128 ubuntu@172.208.67.151'  // your two web servers
+        DOCROOT = '/var/www/html'                             // Apache default doc root
+        APP_SRC = './'                                        // repo root; 'dist/' if you build
+        // --------------------
     }
 
     stages {
+
         stage('Checkout') {
+            steps { checkout scm }
+        }
+
+        stage('Build & Test') {
             steps {
-                checkout scm
+                // Put real build/test commands here if any, e.g. sh 'npm ci && npm run build'
+                sh 'echo "No build step — deploying repo as-is."'
             }
         }
 
         stage('Deploy') {
             steps {
-                withCredentials([usernamePassword(credentialsId: env.CREDENTIAL_ID, usernameVariable: 'SSH_USER', passwordVariable: 'SSH_PASS')]) {
+                sshagent(credentials: ['webservers-ssh-key']) {
                     sh '''
                         set -eu
                         SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-                        
-                        for SERVER in ${WEB_SERVERS}; do
-                            TARGET="${SSH_USER}@${SERVER}"
-                            echo "=== Deploying to ${TARGET}:${DOCROOT} ==="
-                            
-                            # Deploy files via rsync using sshpass
-                            rsync -az --delete \
-                                -e "sshpass -p '${SSH_PASS}' ssh ${SSH_OPTS}" \
-                                --rsync-path="sudo rsync" \
+                        for HOST in ${SERVERS}; do
+                            echo "=== Deploying to ${HOST}:${DOCROOT} ==="
+                            # --rsync-path="sudo rsync" lets rsync write to /var/www/html on the server.
+                            rsync -az --delete -e "ssh ${SSH_OPTS}" --rsync-path="sudo rsync" \
                                 --exclude '.git' --exclude 'Jenkinsfile' \
-                                "${APP_SRC}" "${TARGET}:${DOCROOT}/"
-                            
-                            # Reload Apache to serve fresh files
-                            sshpass -p "${SSH_PASS}" ssh ${SSH_OPTS} "${TARGET}" "sudo systemctl reload apache2"
-                            
-                            echo "=== ${TARGET} updated successfully ==="
+                                "${APP_SRC}" "${HOST}:${DOCROOT}/"
+                            ssh ${SSH_OPTS} "${HOST}" "sudo systemctl reload apache2"
+                            echo "=== ${HOST} updated ==="
                         done
                     '''
                 }
