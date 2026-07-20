@@ -1,4 +1,4 @@
-// GitHub push -> webhook -> Jenkins -> Build (Vite) -> SSH/rsync -> Apache servers (/var/www/html)
+// GitHub push -> webhook -> Jenkins -> Vite Build -> SSH/rsync -> Apache servers (/var/www/html)
 
 pipeline {
     agent any
@@ -10,27 +10,21 @@ pipeline {
 
     environment {
         // Target server IPs
-        WEB_SERVERS   = '20.83.153.128 172.208.67.151' 
-        DOCROOT       = '/var/www/html'
-        
-        // Point APP_SRC to dist/ where Vite outputs built static assets
-        APP_SRC       = 'dist/'
-        
-        // Jenkins Credential ID for Password Auth
-        CREDENTIAL_ID = 'webservers-ssh-password'
+        SERVERS = 'msbernabe@20.83.153.128 msbernabe@172.208.67.151'
+        DOCROOT = '/var/www/html'
+        APP_SRC = 'dist/'
     }
 
     stages {
 
         stage('Checkout') {
-            steps { 
-                checkout scm 
+            steps {
+                checkout scm
             }
         }
 
         stage('Build & Test') {
             steps {
-                // Install dependencies and build static production assets into dist/
                 sh '''
                     npm ci
                     npm run build
@@ -40,24 +34,22 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                withCredentials([usernamePassword(credentialsId: env.CREDENTIAL_ID, usernameVariable: 'SSH_USER', passwordVariable: 'SSH_PASS')]) {
+                sshagent(credentials: ['webservers-ssh-key']) {
                     sh '''
                         set -eu
                         SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
                         
-                        for SERVER in ${WEB_SERVERS}; do
-                            TARGET="${SSH_USER}@${SERVER}"
-                            echo "=== Deploying built dist/ to ${TARGET}:${DOCROOT} ==="
+                        for HOST in ${SERVERS}; do
+                            echo "=== Deploying dist/ to ${HOST}:${DOCROOT} ==="
                             
-                            # Note the trailing slash on ${APP_SRC} to copy contents of dist/ into /var/www/html/
-                            rsync -az --delete \
-                                -e "sshpass -p '${SSH_PASS}' ssh ${SSH_OPTS}" \
-                                --rsync-path="sudo rsync" \
-                                "${APP_SRC}" "${TARGET}:${DOCROOT}/"
+                            # Sync static dist/ files to Apache docroot
+                            rsync -az --delete -e "ssh ${SSH_OPTS}" --rsync-path="sudo rsync" \
+                                "${APP_SRC}" "${HOST}:${DOCROOT}/"
                             
-                            sshpass -p "${SSH_PASS}" ssh ${SSH_OPTS} "${TARGET}" "sudo systemctl reload apache2"
+                            # Reload Apache
+                            ssh ${SSH_OPTS} "${HOST}" "sudo systemctl reload apache2"
                             
-                            echo "=== ${TARGET} updated successfully ==="
+                            echo "=== ${HOST} updated successfully ==="
                         done
                     '''
                 }
