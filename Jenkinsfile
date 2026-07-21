@@ -3,7 +3,7 @@ pipeline {
     
     environment {
         // Replace with your actual storage account name
-        AZ_ACCOUNT = '<youruniquestorage>' 
+        AZ_ACCOUNT = 'neonstorage67' 
         AZ_SHARE = 'webcontent'
     }
     
