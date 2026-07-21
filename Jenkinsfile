@@ -1,56 +1,31 @@
-// GitHub push -> webhook -> Jenkins -> Vite Build -> SSH/rsync -> Apache servers (/var/www/html)
-
 pipeline {
     agent any
-
-    options {
-        timestamps()
-        disableConcurrentBuilds()
-    }
-
+    
     environment {
-        // Target server IPs
-        SERVERS = 'msbernabe@20.83.153.128 msbernabe@172.208.67.151'
-        DOCROOT = '/var/www/html'
-        APP_SRC = 'dist/'
+        // Make sure to replace this with your actual storage account name ($STG)
+        AZ_ACCOUNT = '<youruniquestorage>' 
+        AZ_SHARE = 'webcontent'
     }
-
+    
     stages {
-
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
+        stage('Checkout') { 
+            steps { 
+                checkout scm 
+            } 
         }
-
-        stage('Build & Test') {
+        
+        stage('Deploy to ACI (file share)') {
             steps {
-                sh '''
-                    npm ci
-                    npm run build
-                '''
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                sshagent(credentials: ['webservers-ssh-key']) {
+                withCredentials([string(credentialsId: 'azure-storage-key', variable: 'AZ_KEY')]) {
+                    // Using single quotes (''') ensures Bash handles the variable interpolation safely
                     sh '''
-                        set -eu
-                        SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-                        
-                        for HOST in ${SERVERS}; do
-                            echo "=== Deploying dist/ to ${HOST}:${DOCROOT} ==="
-                            
-                            # Sync static dist/ files to Apache docroot
-                            rsync -az --delete -e "ssh ${SSH_OPTS}" --rsync-path="sudo rsync" \
-                                "${APP_SRC}" "${HOST}:${DOCROOT}/"
-                            
-                            # Reload Apache
-                            ssh ${SSH_OPTS} "${HOST}" "sudo systemctl reload apache2"
-                            
-                            echo "=== ${HOST} updated successfully ==="
-                        done
+                        az storage file upload-batch \
+                          --account-name "$AZ_ACCOUNT" \
+                          --account-key "$AZ_KEY" \
+                          --destination "$AZ_SHARE" \
+                          --source . \
+                          --pattern "*.html" \
+                          --no-progress
                     '''
                 }
             }
